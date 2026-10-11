@@ -9,7 +9,7 @@ index efdc34c..7ee1bd9 100644
 +export { ShortUrlsTableExtraColumnsContext } from './short-urls/ShortUrlsTableExtraColumns';
 +export type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } from './short-urls/ShortUrlsTableExtraColumns';
 diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.js b/node_modules/@shlinkio/shlink-web-component/dist/index.js
-index bae3240..fe1082a 100644
+index bae3240..de710a9 100644
 --- a/node_modules/@shlinkio/shlink-web-component/dist/index.js
 +++ b/node_modules/@shlinkio/shlink-web-component/dist/index.js
 @@ -6,7 +6,7 @@ import { Parser as Me } from "@json2csv/plainjs";
@@ -30,9 +30,9 @@ index bae3240..fe1082a 100644
 +/** How the short URLs table is displayed on small screens: as cards, or as a horizontally scrollable table (shlink-dashboard patch) */
 +var SHORT_URLS_MOBILE_LAYOUT_KEY = "shlink-dashboard.short-urls-mobile-layout", shortUrlsMobileLayoutState = { value: void 0 }, shortUrlsMobileLayoutListeners = /* @__PURE__ */ new Set(), getShortUrlsMobileLayout = () => {
 +	if (shortUrlsMobileLayoutState.value === void 0) try {
-+		shortUrlsMobileLayoutState.value = globalThis.localStorage?.getItem(SHORT_URLS_MOBILE_LAYOUT_KEY) === "table" ? "table" : "cards";
++		shortUrlsMobileLayoutState.value = globalThis.localStorage?.getItem(SHORT_URLS_MOBILE_LAYOUT_KEY) === "cards" ? "cards" : "table";
 +	} catch {
-+		shortUrlsMobileLayoutState.value = "cards";
++		shortUrlsMobileLayoutState.value = "table";
 +	}
 +	return shortUrlsMobileLayoutState.value;
 +}, setShortUrlsMobileLayout = (layout) => {
@@ -41,7 +41,7 @@ index bae3240..fe1082a 100644
 +		globalThis.localStorage?.setItem(SHORT_URLS_MOBILE_LAYOUT_KEY, layout);
 +	} catch {}
 +	shortUrlsMobileLayoutListeners.forEach((listener) => listener());
-+}, subscribeToShortUrlsMobileLayout = (listener) => (shortUrlsMobileLayoutListeners.add(listener), () => shortUrlsMobileLayoutListeners.delete(listener)), useShortUrlsMobileLayout = () => useSyncExternalStoreR(subscribeToShortUrlsMobileLayout, getShortUrlsMobileLayout, () => "cards"), ShortUrlsMobileLayoutToggle = ({ className: e }) => {
++}, subscribeToShortUrlsMobileLayout = (listener) => (shortUrlsMobileLayoutListeners.add(listener), () => shortUrlsMobileLayoutListeners.delete(listener)), useShortUrlsMobileLayout = () => useSyncExternalStoreR(subscribeToShortUrlsMobileLayout, getShortUrlsMobileLayout, () => "table"), ShortUrlsMobileLayoutToggle = ({ className: e }) => {
 +	let t = useShortUrlsMobileLayout();
 +	return /* @__PURE__ */ B("div", {
 +		role: "group",
@@ -49,16 +49,16 @@ index bae3240..fe1082a 100644
 +		className: H("flex", e),
 +		children: [/* @__PURE__ */ z(g, {
 +			className: "grow [&]:rounded-r-none",
-+			solid: t === "cards",
-+			"aria-pressed": t === "cards",
-+			onClick: () => setShortUrlsMobileLayout("cards"),
-+			children: "Cards"
-+		}), /* @__PURE__ */ z(g, {
-+			className: "grow [&]:rounded-l-none [&]:border-l-0",
 +			solid: t === "table",
 +			"aria-pressed": t === "table",
 +			onClick: () => setShortUrlsMobileLayout("table"),
 +			children: "Table"
++		}), /* @__PURE__ */ z(g, {
++			className: "grow [&]:rounded-l-none [&]:border-l-0",
++			solid: t === "cards",
++			"aria-pressed": t === "cards",
++			onClick: () => setShortUrlsMobileLayout("cards"),
++			children: "Cards"
 +		})]
 +	});
 +};
@@ -178,6 +178,19 @@ index bae3240..fe1082a 100644
  	});
  }, Jc = ({ children: e, title: t, link: n, tooltip: r }) => {
  	let { anchor: i, tooltip: a } = Ae({ placement: "bottom" });
+@@ -2916,10 +2975,10 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 				title: "Recently created URLs",
+ 				titleLinkText: "See all",
+ 				titleLink: `${u}/list-short-urls/1`,
+-				children: /* @__PURE__ */ z(qc, {
++				children: [/* @__PURE__ */ z(ShortUrlsMobileLayoutToggle, { className: "lg:hidden mb-4" }), /* @__PURE__ */ z(qc, {
+ 					shortUrlsList: e,
+ 					onTagClick: (e) => d(`${u}/list-short-urls/1?tags=${encodeURIComponent(e)}`)
+-				})
++				})]
+ 			})
+ 		]
+ 	});
 @@ -5143,6 +5202,10 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  		]
  	});
