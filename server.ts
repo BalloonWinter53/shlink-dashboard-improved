@@ -1,7 +1,14 @@
 import { createRequestHandler } from '@react-router/express';
 import express from 'express';
 
-const { NODE_ENV, SHLINK_DASHBOARD_PORT = '3005' } = process.env;
+const {
+  NODE_ENV,
+  SHLINK_DASHBOARD_PORT = '3005',
+  // Proxies trusted to set X-Forwarded-* headers, in Express' "trust proxy" format: comma-separated IPs, subnets or
+  // keywords like loopback or uniquelocal. Behind a TLS-terminating proxy, the original protocol is needed for the
+  // origin check done on form submissions to pass.
+  SHLINK_DASHBOARD_TRUSTED_PROXIES = 'loopback',
+} = process.env;
 const isProd = NODE_ENV === 'production';
 
 const viteDevServer = isProd
@@ -13,6 +20,7 @@ const viteDevServer = isProd
     );
 
 const app = express();
+app.set('trust proxy', SHLINK_DASHBOARD_TRUSTED_PROXIES);
 app.use(viteDevServer ? viteDevServer.middlewares : express.static('client'));
 
 const build = viteDevServer
