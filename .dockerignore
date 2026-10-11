@@ -12,3 +12,4 @@ vitest.config.ts
 .env
 .env.*
 !.env.example
+deploy
