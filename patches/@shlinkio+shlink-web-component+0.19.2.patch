@@ -9,7 +9,7 @@ index efdc34c..7ee1bd9 100644
 +export { ShortUrlsTableExtraColumnsContext } from './short-urls/ShortUrlsTableExtraColumns';
 +export type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } from './short-urls/ShortUrlsTableExtraColumns';
 diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.js b/node_modules/@shlinkio/shlink-web-component/dist/index.js
-index bae3240..272d29f 100644
+index bae3240..4f9e2e6 100644
 --- a/node_modules/@shlinkio/shlink-web-component/dist/index.js
 +++ b/node_modules/@shlinkio/shlink-web-component/dist/index.js
 @@ -6,7 +6,7 @@ import { Parser as Me } from "@json2csv/plainjs";
@@ -32,7 +32,7 @@ index bae3240..272d29f 100644
 + * Clicking again toggles the direction, and a third click clears the ordering.
 + */
 +var DEFAULT_ORDER_DIRS = {
-+	dateCreated: "ASC",
++	dateCreated: "DESC",
 +	shortCode: "ASC",
 +	title: "ASC",
 +	longUrl: "ASC",
