@@ -7,7 +7,8 @@ module.exports = {
   apps: [
     {
       name: 'shlink-dashboard',
-      cwd: path.join(root, 'build'),
+      // Symlink to the active release in releases/, switched by deploy.sh
+      cwd: path.join(root, 'current'),
       script: 'server.js',
       node_args: `--env-file=${path.join(root, '.env')}`,
       env: { NODE_ENV: 'production' },

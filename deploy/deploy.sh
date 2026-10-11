@@ -1,27 +1,53 @@
 #!/usr/bin/env bash
-# Builds and (re)starts Shlink Dashboard with pm2. Run it from a clone of this repo on the server, with a .env file in
-# the repo root (see .env.example).
-set -euo pipefail
+# Builds the current checkout into releases/<commit>, runs migrations, and switches the pm2 app to it.
+# The previous release keeps running until the new one is fully built, so a failed build causes no downtime.
+#
+# Run it from a clone of this repo on the server, with a .env file in the repo root (see .env.example).
+# Usually invoked via deploy/auto-update.sh, which pulls new commits first.
 
-cd "$(dirname "$0")/.."
+# Wrapped in a function so that bash parses the whole file before running it, in case it changes during a deploy
+main() {
+  set -euo pipefail
 
-if [ ! -f .env ]; then
-  echo "Missing .env file in $(pwd). Copy .env.example and fill it in." >&2
-  exit 1
-fi
+  cd "$(dirname "$0")/.."
+  local root
+  root="$(pwd)"
 
-git pull --ff-only
-VERSION="${VERSION:-$(git describe --tags --always)}"
-echo "Deploying version ${VERSION}"
+  if [ ! -f .env ]; then
+    echo "Missing .env file in ${root}. Copy .env.example and fill it in." >&2
+    exit 1
+  fi
 
-npm ci
-# Builds into build/ and installs production dependencies there
-VERSION="${VERSION}" node --run build:dist
-cp tsconfig.json build/
+  local commit version release
+  commit="$(git rev-parse --short HEAD)"
+  version="${VERSION:-$(git describe --tags --always)}"
+  release="${root}/releases/${commit}"
+  echo "Building version ${version} into ${release}"
 
-# `node --run` does not pass --env-file vars to scripts, so the migrations CLI is invoked directly
-(cd build && node --env-file=../.env ./node_modules/tsx/dist/cli.mjs ./node_modules/@mikro-orm/cli/cli.js \
-  migration:up --config ./migrations.config.ts)
+  npm ci
+  # Builds into build/ and installs production dependencies there
+  VERSION="${version}" node --run build:dist
+  cp tsconfig.json build/
+  mkdir -p releases
+  rm -rf "${release}"
+  cp -a build "${release}"
 
-pm2 startOrReload deploy/ecosystem.config.cjs --update-env
-pm2 save
+  # `node --run` does not pass --env-file vars to scripts, so the migrations CLI is invoked directly
+  (cd "${release}" && node --env-file="${root}/.env" ./node_modules/tsx/dist/cli.mjs \
+    ./node_modules/@mikro-orm/cli/cli.js migration:up --config ./migrations.config.ts)
+
+  # Atomically point current/ to the new release
+  ln -sfn "releases/${commit}" current.tmp
+  mv -Tf current.tmp current
+
+  pm2 startOrReload deploy/ecosystem.config.cjs --update-env
+  pm2 save
+
+  # Keep the 3 most recent releases, to be able to roll back
+  ls -1dt releases/*/ | tail -n +4 | xargs -r rm -rf
+
+  echo "Deployed ${version}"
+}
+
+main "$@"
+exit
