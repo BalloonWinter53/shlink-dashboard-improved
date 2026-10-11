@@ -1,0 +1,140 @@
+diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.d.ts b/node_modules/@shlinkio/shlink-web-component/dist/index.d.ts
+index efdc34c..7ee1bd9 100644
+--- a/node_modules/@shlinkio/shlink-web-component/dist/index.d.ts
++++ b/node_modules/@shlinkio/shlink-web-component/dist/index.d.ts
+@@ -5,3 +5,5 @@ export type { TagColorsStorage } from './utils/services/TagColorsStorage';
+ export { ShlinkSidebarToggleButton } from './sidebar/ShlinkSidebarToggleButton';
+ export type { ShlinkSidebarToggleButtonProps } from './sidebar/ShlinkSidebarToggleButton';
+ export { ShlinkSidebarVisibilityProvider } from './sidebar/ShlinkSidebarVisibilityProvider';
++export { ShortUrlsTableExtraColumnsContext } from './short-urls/ShortUrlsTableExtraColumns';
++export type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } from './short-urls/ShortUrlsTableExtraColumns';
+diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.js b/node_modules/@shlinkio/shlink-web-component/dist/index.js
+index bae3240..6c63c7b 100644
+--- a/node_modules/@shlinkio/shlink-web-component/dist/index.js
++++ b/node_modules/@shlinkio/shlink-web-component/dist/index.js
+@@ -22,6 +22,8 @@ import { useSwipeable as Mn } from "react-swipeable";
+ import { Bar as Nn, CartesianGrid as Pn, Cell as Fn, ComposedChart as In, Line as Ln, LineChart as Rn, Pie as zn, PieChart as Bn, ReferenceArea as Vn, ResponsiveContainer as Hn, Tooltip as Un, XAxis as Wn, YAxis as Gn } from "recharts";
+ import { MapContainer as Kn, Marker as qn, Popup as Jn, TileLayer as Yn } from "react-leaflet";
+ import Xn from "leaflet";
++/** Lets consumers append extra columns to the short URLs table (shlink-dashboard patch) */
++var ShortUrlsTableExtraColumnsContext = ft([]);
+ //#region \0rolldown/runtime.js
+ var Zn = Object.defineProperty, Qn = (e, t) => {
+ 	let n = {};
+@@ -2649,6 +2651,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 		onClick: () => t?.(e)
+ 	}, e))
+ }), Wc = wi(({ shortUrl: e, onTagClick: t, ColorGenerator: n, useTimeoutToggle: r }) => {
++	let extraColumns = mt(ShortUrlsTableExtraColumnsContext);
+ 	let [i, a] = r({
+ 		initialValue: !1,
+ 		delay: 500
+@@ -2708,6 +2711,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 					asLink: !0
+ 				})
+ 			}),
++			...extraColumns.map((column) => /* @__PURE__ */ z(A.Cell, {
++				className: column.className,
++				columnName: `${column.name}:`,
++				children: /* @__PURE__ */ z(column.Cell, {
++					shortUrl: e,
++					excludeBots: !!u
++				})
++			}, column.key)),
+ 			/* @__PURE__ */ z(A.Cell, {
+ 				columnName: "Status:",
+ 				className: "max-lg:border-none",
+@@ -2729,7 +2740,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 		]
+ 	});
+ }, ["ColorGenerator", "useTimeoutToggle"]), Gc = ({ children: e, danger: t }) => /* @__PURE__ */ z(A.Row, { children: /* @__PURE__ */ z(A.Cell, {
+-	colSpan: 6,
++	colSpan: 6 + mt(ShortUrlsTableExtraColumnsContext).length,
+ 	className: H("text-center", { "text-danger font-bold": t }),
+ 	children: e
+ }) }), Kc = ({ shortUrlsList: e, onTagClick: t }) => {
+@@ -2742,7 +2753,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 		onTagClick: t
+ 	}, e.shortUrl));
+ }, qc = ({ orderByColumn: e, renderOrderIcon: t, shortUrlsList: n, onTagClick: r }) => {
+-	let i = H({ "cursor-pointer": !!e });
++	let i = H({ "cursor-pointer": !!e }), extraColumns = mt(ShortUrlsTableExtraColumnsContext);
+ 	return /* @__PURE__ */ z(A, {
+ 		className: "mb-[-1px] w-full",
+ 		header: /* @__PURE__ */ B(A.Row, { children: [
+@@ -2785,6 +2796,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 					children: ["Visits ", t?.("visits")]
+ 				})
+ 			}),
++			...extraColumns.map((column) => /* @__PURE__ */ z(A.Cell, {
++				className: H(column.className, column.orderField && i),
++				onClick: column.orderField ? e?.(column.orderField) : void 0,
++				children: column.orderField ? /* @__PURE__ */ B("span", {
++					className: "whitespace-nowrap",
++					children: [column.header ?? column.name, " ", t?.(column.orderField)]
++				}) : column.header ?? column.name
++			}, column.key)),
+ 			/* @__PURE__ */ z(A.Cell, {
+ 				colSpan: 2,
+ 				"aria-hidden": !0
+@@ -5143,6 +5162,10 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 		]
+ 	});
+ }, pd = ({ className: e, shortUrlsAmount: t, order: n, handleOrderBy: r }) => {
++	let extraColumns = mt(ShortUrlsTableExtraColumnsContext), orderItems = F(() => ({
++		...cd,
++		...Object.fromEntries(extraColumns.filter((column) => column.orderField).map((column) => [column.orderField, column.name]))
++	}), [extraColumns]);
+ 	let { domainsList: i } = da(), { tagsList: a } = To(), [{ search: s, tags: c, tagsMode: l = "any", excludeTags: u, excludeTagsMode: d = "any", startDate: f, endDate: p, excludeBots: m, excludeMaxVisitsReached: h, excludePastValidUntil: g, domain: _ }, v] = Cc(), y = o("visits"), b = Ji("filterShortUrlsByDomain"), x = Ji("filterShortUrlsByExcludedTags"), [S, ee] = I(), C = N(({ startDate: e, endDate: t }, n) => {
+ 		v({
+ 			startDate: Cr(e) ?? void 0,
+@@ -5215,7 +5238,7 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 						containerClassName: "[&]:block",
+ 						buttonClassName: "w-full",
+ 						prefixed: !1,
+-						items: cd,
++						items: orderItems,
+ 						order: n,
+ 						onChange: ({ field: e, dir: t }) => r(e, t)
+ 					})
+@@ -5248,6 +5271,9 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 	}), T = N((e) => _({ tags: [.../* @__PURE__ */ new Set([...a, e])] }), [a, _]), ne = N(({ field: e, dir: t }) => ee && e === "visits" ? {
+ 		field: "nonBotVisits",
+ 		dir: t
++	} : ee && e?.startsWith("visitsLast") ? {
++		field: `nonBotV${e.slice(1)}`,
++		dir: t
+ 	} : {
+ 		field: e,
+ 		dir: t
+@@ -7341,4 +7367,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
+ });
+ var Qf = Zf(yi);
+ //#endregion
+-export { yd as ShlinkSidebarToggleButton, vd as ShlinkSidebarVisibilityProvider, Qf as ShlinkWebComponent };
++export { ShortUrlsTableExtraColumnsContext, yd as ShlinkSidebarToggleButton, vd as ShlinkSidebarVisibilityProvider, Qf as ShlinkWebComponent };
+diff --git a/node_modules/@shlinkio/shlink-web-component/dist/short-urls/ShortUrlsTableExtraColumns.d.ts b/node_modules/@shlinkio/shlink-web-component/dist/short-urls/ShortUrlsTableExtraColumns.d.ts
+new file mode 100644
+index 0000000..513443d
+--- /dev/null
++++ b/node_modules/@shlinkio/shlink-web-component/dist/short-urls/ShortUrlsTableExtraColumns.d.ts
+@@ -0,0 +1,19 @@
++import { Context, FC, ReactNode } from 'react';
++import { ShlinkShortUrl } from '../api-contract';
++export type ShortUrlsTableExtraColumnCellProps = {
++    shortUrl: ShlinkShortUrl;
++    /** Whether bot visits should be excluded, as resolved by the table from settings and query params */
++    excludeBots: boolean;
++};
++export type ShortUrlsTableExtraColumn = {
++    key: string;
++    /** Used as header (unless `header` is provided) and as the cell label on small screens */
++    name: string;
++    header?: ReactNode;
++    className?: string;
++    /** Order field to sort the table by this column. Shlink does not know it, so the API client needs to handle it */
++    orderField?: string;
++    Cell: FC<ShortUrlsTableExtraColumnCellProps>;
++};
++/** Lets consumers append extra columns to the short URLs table (shlink-dashboard patch) */
++export declare const ShortUrlsTableExtraColumnsContext: Context<ShortUrlsTableExtraColumn[]>;

@@ -10,7 +10,8 @@ const versionIsValidSemVer = (version: string): version is SemVer => /^v?\d+\.\d
 
 const versionToPrintable = (version: string) => (!versionIsValidSemVer(version) ? version : `v${version}`);
 
-const versionToSemVer = (version: string): SemVer | 'latest' => (versionIsValidSemVer(version) ? version : 'latest');
+export const versionToSemVer = (version: string): SemVer | 'latest' =>
+  versionIsValidSemVer(version) ? version : 'latest';
 
 const normalizeVersion = (version: string) => versionToPrintable(versionToSemVer(version));
 

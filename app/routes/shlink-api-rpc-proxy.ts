@@ -5,6 +5,10 @@ import type { ApiClientBuilder } from '../api/apiClientBuilder.server';
 import { AuthHelper } from '../auth/auth-helper.server';
 import { serverContainer } from '../container/container.server';
 import { ServersService } from '../servers/ServersService.server';
+import {
+  listShortUrlsOrderedByVisitsWindow,
+  resolveVisitsWindowOrder,
+} from '../short-urls/short-urls-visits-window-ordering.server';
 import { problemDetails } from '../utils/response.server';
 
 type Callback = (...args: unknown[]) => unknown;
@@ -87,7 +91,11 @@ export async function action(
   }
 
   try {
-    const response = await apiMethod.bind(client)(...(args as Parameters<typeof apiMethod>));
+    // Ordering by visits in a time window is not supported by Shlink, so it is resolved by the dashboard
+    const visitsWindowOrder = method === 'listShortUrls' ? resolveVisitsWindowOrder(args[0]) : undefined;
+    const response = visitsWindowOrder
+      ? await listShortUrlsOrderedByVisitsWindow(client, args[0], visitsWindowOrder)
+      : await apiMethod.bind(client)(...(args as Parameters<typeof apiMethod>));
     return Response.json(response);
   } catch (e) {
     console_.error(e);

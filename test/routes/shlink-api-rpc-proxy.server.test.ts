@@ -16,7 +16,9 @@ describe('shlink-api-rpc-proxy', () => {
     return { shortCode };
   };
   const editTag = (oldTag: string, newTag: string) => ({ oldTag, newTag });
-  const apiClient = fromPartial<ShlinkApiClient>({ getShortUrl, editTag });
+  const listShortUrls = vi.fn();
+  const getNonOrphanVisits = vi.fn();
+  const apiClient = fromPartial<ShlinkApiClient>({ getShortUrl, editTag, listShortUrls, getNonOrphanVisits });
   const createApiClient = vi.fn().mockReturnValue(apiClient);
   const getSession = vi.fn();
   const authHelper = fromPartial<AuthHelper>({ getSession });
@@ -165,5 +167,33 @@ describe('shlink-api-rpc-proxy', () => {
     expect(getSession).toHaveBeenCalled();
     expect(getByPublicIdAndUser).toHaveBeenCalled();
     expect(createApiClient).toHaveBeenCalled();
+  });
+
+  it.each([
+    [{ orderBy: { field: 'visits', dir: 'DESC' } }, false],
+    [{ orderBy: { field: 'visitsLast7Days', dir: 'DESC' } }, true],
+    [{ orderBy: { field: 'nonBotVisitsLast30Days', dir: 'ASC' } }, true],
+  ])('resolves ordering by visits in a time window in the dashboard', async (params, resolvedByDashboard) => {
+    getSession.mockResolvedValue({ publicId: '123' });
+    getByPublicIdAndUser.mockResolvedValue({});
+    listShortUrls.mockResolvedValue({ data: [], pagination: { currentPage: 1, pagesCount: 1, totalItems: 0 } });
+    getNonOrphanVisits.mockResolvedValue({ data: [], pagination: { currentPage: 1, pagesCount: 1, totalItems: 0 } });
+    const action = setUp();
+
+    const resp = await action(
+      fromPartial({
+        request: fromPartial({ json: vi.fn().mockResolvedValue({ args: [params] }) }),
+        params: { serverId: 'abc123', method: 'listShortUrls' },
+      }),
+    );
+
+    expect(resp.status).toEqual(200);
+    if (resolvedByDashboard) {
+      expect(listShortUrls).toHaveBeenCalledWith(expect.objectContaining({ itemsPerPage: -1 }));
+      expect(getNonOrphanVisits).toHaveBeenCalled();
+    } else {
+      expect(listShortUrls).toHaveBeenCalledWith(params);
+      expect(getNonOrphanVisits).not.toHaveBeenCalled();
+    }
   });
 });

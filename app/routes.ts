@@ -13,6 +13,7 @@ export default [
   ...prefix('/server/:serverId/', [
     route('shlink-api/:method', './routes/shlink-api-rpc-proxy.ts'),
     route('tags/colors', './routes/save-tags-colors.ts'),
+    route('short-urls/visits-windows', './routes/short-urls-visits-windows.ts'),
     route('*', './routes/shlink-component-wrapper.tsx'),
   ]),
 

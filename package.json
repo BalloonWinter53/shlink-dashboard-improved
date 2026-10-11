@@ -23,7 +23,8 @@
     "migration:create": "./node_modules/tsx/dist/cli.mjs ./node_modules/@mikro-orm/cli/cli.js migration:create --config ./migrations.config.ts",
     "migration:run": "./node_modules/tsx/dist/cli.mjs ./node_modules/@mikro-orm/cli/cli.js migration:up --config ./migrations.config.ts",
     "migration:down": "./node_modules/tsx/dist/cli.mjs ./node_modules/@mikro-orm/cli/cli.js migration:down --config ./migrations.config.ts",
-    "password:hash": "tsx ./scripts/hash-password.ts"
+    "password:hash": "tsx ./scripts/hash-password.ts",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
@@ -49,6 +50,7 @@
     "express": "^5.2.1",
     "isbot": "^5.2.2",
     "libsql": "^0.5.29",
+    "patch-package": "^8.0.1",
     "pg": "^8.23.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

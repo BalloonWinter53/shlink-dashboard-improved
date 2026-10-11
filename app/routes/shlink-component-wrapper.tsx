@@ -5,9 +5,11 @@ import type { LoaderFunctionArgs } from 'react-router';
 import { useLocation } from 'react-router';
 import { ShlinkApiProxyClient } from '../api/ShlinkApiProxyClient.client';
 import { AuthHelper } from '../auth/auth-helper.server';
-import { ShlinkVersionsContainer } from '../common/ShlinkVersionsContainer';
+import { ShlinkVersionsContainer, versionToSemVer } from '../common/ShlinkVersionsContainer';
 import { serverContainer } from '../container/container.server';
 import { SettingsService } from '../settings/SettingsService.server';
+import { ShortUrlVisitsWindowsLoader } from '../short-urls/ShortUrlVisitsWindowsLoader.client';
+import { createVisitsWindowsColumns } from '../short-urls/visits-windows-columns';
 import { TagsService } from '../tags/TagsService.server';
 import { TagsStorage } from '../tags/TagsStorage.client';
 import type { Route } from './+types/shlink-component-wrapper';
@@ -55,19 +57,31 @@ export default function ShlinkWebComponentContainer({ params, loaderData }: Rout
       import('@shlinkio/shlink-web-component'),
       apiClient.health(),
     ])
-      .then(([{ ShlinkWebComponent, ShlinkSidebarVisibilityProvider, ShlinkSidebarToggleButton }, { version }]) => {
+      .then(([shlinkWebComponentModule, { version }]) => {
+        const {
+          ShlinkWebComponent,
+          ShlinkSidebarVisibilityProvider,
+          ShlinkSidebarToggleButton,
+          ShortUrlsTableExtraColumnsContext,
+        } = shlinkWebComponentModule;
+        const extraColumns = createVisitsWindowsColumns(
+          new ShortUrlVisitsWindowsLoader(`/server/${serverId}/short-urls/visits-windows`),
+        );
+
         setServerVersion(version);
         setComponent(
           <ShlinkSidebarVisibilityProvider>
             <ShlinkSidebarToggleButton className="fixed top-3.5 left-2 z-1035" />
-            <ShlinkWebComponent
-              serverVersion={version as any}
-              apiClient={apiClient}
-              routesPrefix={prefix}
-              settings={settings}
-              tagColorsStorage={new TagsStorage(tagColors, `${prefix}/tags/colors`)}
-              autoSidebarToggle={false}
-            />
+            <ShortUrlsTableExtraColumnsContext.Provider value={extraColumns}>
+              <ShlinkWebComponent
+                serverVersion={versionToSemVer(version)}
+                apiClient={apiClient}
+                routesPrefix={prefix}
+                settings={settings}
+                tagColorsStorage={new TagsStorage(tagColors, `${prefix}/tags/colors`)}
+                autoSidebarToggle={false}
+              />
+            </ShortUrlsTableExtraColumnsContext.Provider>
           </ShlinkSidebarVisibilityProvider>,
         );
       })
