@@ -29,6 +29,9 @@ export const resolveWindowsStartDates = (now = new Date()): Record<VisitsWindow,
  */
 const capitalize = (value: string) => `${value[0].toUpperCase()}${value.slice(1)}`;
 
+/** Visits windows are sorted from most to least visited when their column header is first clicked */
+export const VISITS_WINDOWS_DEFAULT_ORDER_DIR = 'DESC';
+
 export const visitsWindowOrderField = (window: VisitsWindow) => `visits${capitalize(window)}`;
 
 export const parseVisitsWindowOrderField = (

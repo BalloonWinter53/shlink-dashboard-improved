@@ -9,7 +9,7 @@ index efdc34c..7ee1bd9 100644
 +export { ShortUrlsTableExtraColumnsContext } from './short-urls/ShortUrlsTableExtraColumns';
 +export type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } from './short-urls/ShortUrlsTableExtraColumns';
 diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.js b/node_modules/@shlinkio/shlink-web-component/dist/index.js
-index bae3240..981ab06 100644
+index bae3240..d05d64d 100644
 --- a/node_modules/@shlinkio/shlink-web-component/dist/index.js
 +++ b/node_modules/@shlinkio/shlink-web-component/dist/index.js
 @@ -6,7 +6,7 @@ import { Parser as Me } from "@json2csv/plainjs";
@@ -21,12 +21,20 @@ index bae3240..981ab06 100644
  import { Provider as yt, useDispatch as bt, useSelector as xt } from "react-redux";
  import { BrowserRouter as St, Link as Ct, NavLink as wt, Navigate as Tt, Route as L, Routes as Et, useInRouterContext as Dt, useLocation as Ot, useNavigate as kt, useParams as At } from "react-router";
  import { Fragment as R, jsx as z, jsxs as B } from "react/jsx-runtime";
-@@ -22,6 +22,73 @@ import { useSwipeable as Mn } from "react-swipeable";
+@@ -22,6 +22,81 @@ import { useSwipeable as Mn } from "react-swipeable";
  import { Bar as Nn, CartesianGrid as Pn, Cell as Fn, ComposedChart as In, Line as Ln, LineChart as Rn, Pie as zn, PieChart as Bn, ReferenceArea as Vn, ResponsiveContainer as Hn, Tooltip as Un, XAxis as Wn, YAxis as Gn } from "recharts";
  import { MapContainer as Kn, Marker as qn, Popup as Jn, TileLayer as Yn } from "react-leaflet";
  import Xn from "leaflet";
 +/** Lets consumers append extra columns to the short URLs table (shlink-dashboard patch) */
 +var ShortUrlsTableExtraColumnsContext = ft([]);
++/**
++ * Fields sorted descending on the first header click, as their highest values are usually the interesting ones.
++ * Extra columns opt in via their `defaultOrderDir` (shlink-dashboard patch).
++ */
++var DESC_FIRST_ORDER_FIELDS = ["visits"], determineOrderDirFor = ({ currentOrderDir: e, currentField: t, newField: n, defaultOrderDir: r = "ASC" }) => {
++	if (t !== n || !e) return r;
++	return e === r ? r === "ASC" ? "DESC" : "ASC" : void 0;
++};
 +/** How the short URLs table is displayed on small screens: as cards, or as a horizontally scrollable table (shlink-dashboard patch) */
 +var SHORT_URLS_MOBILE_LAYOUT_KEY = "shlink-dashboard.short-urls-mobile-layout", shortUrlsMobileLayoutState = { value: void 0 }, shortUrlsMobileLayoutListeners = /* @__PURE__ */ new Set(), getShortUrlsMobileLayout = () => {
 +	if (shortUrlsMobileLayoutState.value === void 0) try {
@@ -95,7 +103,7 @@ index bae3240..981ab06 100644
  //#region \0rolldown/runtime.js
  var Zn = Object.defineProperty, Qn = (e, t) => {
  	let n = {};
-@@ -2649,6 +2716,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2649,6 +2724,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  		onClick: () => t?.(e)
  	}, e))
  }), Wc = wi(({ shortUrl: e, onTagClick: t, ColorGenerator: n, useTimeoutToggle: r }) => {
@@ -103,7 +111,7 @@ index bae3240..981ab06 100644
  	let [i, a] = r({
  		initialValue: !1,
  		delay: 500
-@@ -2670,27 +2738,28 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2670,27 +2746,28 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  			/* @__PURE__ */ z(A.Cell, {
  				columnName: "Short URL:",
  				children: /* @__PURE__ */ B("span", {
@@ -136,7 +144,7 @@ index bae3240..981ab06 100644
  				columnName: "Tags:",
  				children: /* @__PURE__ */ z(Uc, {
  					tags: e.tags,
-@@ -2708,9 +2777,17 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2708,9 +2785,17 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  					asLink: !0
  				})
  			}),
@@ -155,7 +163,7 @@ index bae3240..981ab06 100644
  				children: /* @__PURE__ */ B("div", {
  					className: "inline-flex gap-2",
  					children: [/* @__PURE__ */ z(Rc, { shortUrl: e }), e.hasRedirectRules && /* @__PURE__ */ z(Ec, {
-@@ -2723,13 +2800,13 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2723,13 +2808,13 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  				})
  			}),
  			/* @__PURE__ */ z(A.Cell, {
@@ -171,7 +179,7 @@ index bae3240..981ab06 100644
  	className: H("text-center", { "text-danger font-bold": t }),
  	children: e
  }) }), Kc = ({ shortUrlsList: e, onTagClick: t }) => {
-@@ -2742,8 +2819,11 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2742,8 +2827,11 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  		onTagClick: t
  	}, e.shortUrl));
  }, qc = ({ orderByColumn: e, renderOrderIcon: t, shortUrlsList: n, onTagClick: r }) => {
@@ -185,7 +193,7 @@ index bae3240..981ab06 100644
  		className: "mb-[-1px] w-full",
  		header: /* @__PURE__ */ B(A.Row, { children: [
  			/* @__PURE__ */ B(A.Cell, {
-@@ -2785,6 +2865,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2785,6 +2873,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  					children: ["Visits ", t?.("visits")]
  				})
  			}),
@@ -200,7 +208,7 @@ index bae3240..981ab06 100644
  			/* @__PURE__ */ z(A.Cell, {
  				colSpan: 2,
  				"aria-hidden": !0
-@@ -2794,6 +2882,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2794,6 +2890,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  			shortUrlsList: n,
  			onTagClick: r
  		})
@@ -208,7 +216,7 @@ index bae3240..981ab06 100644
  	});
  }, Jc = ({ children: e, title: t, link: n, tooltip: r }) => {
  	let { anchor: i, tooltip: a } = Ae({ placement: "bottom" });
-@@ -2916,10 +3005,10 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2916,10 +3013,10 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  				title: "Recently created URLs",
  				titleLinkText: "See all",
  				titleLink: `${u}/list-short-urls/1`,
@@ -221,7 +229,7 @@ index bae3240..981ab06 100644
  			})
  		]
  	});
-@@ -5143,7 +5232,11 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5143,7 +5240,11 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  		]
  	});
  }, pd = ({ className: e, shortUrlsAmount: t, order: n, handleOrderBy: r }) => {
@@ -234,7 +242,7 @@ index bae3240..981ab06 100644
  		v({
  			startDate: Cr(e) ?? void 0,
  			endDate: Cr(t) ?? void 0
-@@ -5208,29 +5301,35 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5208,29 +5309,35 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  					})]
  				})]
  			}), /* @__PURE__ */ B("div", {
@@ -277,7 +285,20 @@ index bae3240..981ab06 100644
  		_({ orderBy: {
  			field: e,
  			dir: t
-@@ -5248,6 +5347,9 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5238,16 +5345,20 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 			field: e,
+ 			dir: t
+ 		});
+-	}, [_]), w = (e) => () => C(e, ge({
++	}, [_]), extraColumns = mt(ShortUrlsTableExtraColumnsContext), w = (e) => () => C(e, determineOrderDirFor({
+ 		currentOrderDir: y.dir,
+ 		currentField: y.field,
+-		newField: e
++		newField: e,
++		defaultOrderDir: DESC_FIRST_ORDER_FIELDS.includes(e) ? "DESC" : extraColumns.find((column) => column.orderField === e)?.defaultOrderDir
+ 	})), te = (e) => /* @__PURE__ */ z(td, {
+ 		currentOrder: y,
+ 		field: e
  	}), T = N((e) => _({ tags: [.../* @__PURE__ */ new Set([...a, e])] }), [a, _]), ne = N(({ field: e, dir: t }) => ee && e === "visits" ? {
  		field: "nonBotVisits",
  		dir: t
@@ -287,7 +308,7 @@ index bae3240..981ab06 100644
  	} : {
  		field: e,
  		dir: t
-@@ -5265,11 +5367,13 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5265,11 +5376,13 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  			orderBy: ne(y),
  			excludePastValidUntil: m,
  			excludeMaxVisitsReached: h,
@@ -302,7 +323,7 @@ index bae3240..981ab06 100644
  		r,
  		l,
  		a,
-@@ -7341,4 +7445,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
+@@ -7341,4 +7454,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
  });
  var Qf = Zf(yi);
  //#endregion
@@ -310,10 +331,10 @@ index bae3240..981ab06 100644
 +export { ShortUrlsTableExtraColumnsContext, yd as ShlinkSidebarToggleButton, vd as ShlinkSidebarVisibilityProvider, Qf as ShlinkWebComponent };
 diff --git a/node_modules/@shlinkio/shlink-web-component/dist/short-urls/ShortUrlsTableExtraColumns.d.ts b/node_modules/@shlinkio/shlink-web-component/dist/short-urls/ShortUrlsTableExtraColumns.d.ts
 new file mode 100644
-index 0000000..513443d
+index 0000000..a81a7cc
 --- /dev/null
 +++ b/node_modules/@shlinkio/shlink-web-component/dist/short-urls/ShortUrlsTableExtraColumns.d.ts
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,21 @@
 +import { Context, FC, ReactNode } from 'react';
 +import { ShlinkShortUrl } from '../api-contract';
 +export type ShortUrlsTableExtraColumnCellProps = {
@@ -329,6 +350,8 @@ index 0000000..513443d
 +    className?: string;
 +    /** Order field to sort the table by this column. Shlink does not know it, so the API client needs to handle it */
 +    orderField?: string;
++    /** Direction used the first time the column header is clicked. Defaults to 'ASC' */
++    defaultOrderDir?: 'ASC' | 'DESC';
 +    Cell: FC<ShortUrlsTableExtraColumnCellProps>;
 +};
 +/** Lets consumers append extra columns to the short URLs table (shlink-dashboard patch) */
