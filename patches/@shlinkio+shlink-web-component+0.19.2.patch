@@ -9,7 +9,7 @@ index efdc34c..7ee1bd9 100644
 +export { ShortUrlsTableExtraColumnsContext } from './short-urls/ShortUrlsTableExtraColumns';
 +export type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } from './short-urls/ShortUrlsTableExtraColumns';
 diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.js b/node_modules/@shlinkio/shlink-web-component/dist/index.js
-index bae3240..de710a9 100644
+index bae3240..981ab06 100644
 --- a/node_modules/@shlinkio/shlink-web-component/dist/index.js
 +++ b/node_modules/@shlinkio/shlink-web-component/dist/index.js
 @@ -6,7 +6,7 @@ import { Parser as Me } from "@json2csv/plainjs";
@@ -21,7 +21,7 @@ index bae3240..de710a9 100644
  import { Provider as yt, useDispatch as bt, useSelector as xt } from "react-redux";
  import { BrowserRouter as St, Link as Ct, NavLink as wt, Navigate as Tt, Route as L, Routes as Et, useInRouterContext as Dt, useLocation as Ot, useNavigate as kt, useParams as At } from "react-router";
  import { Fragment as R, jsx as z, jsxs as B } from "react/jsx-runtime";
-@@ -22,6 +22,43 @@ import { useSwipeable as Mn } from "react-swipeable";
+@@ -22,6 +22,73 @@ import { useSwipeable as Mn } from "react-swipeable";
  import { Bar as Nn, CartesianGrid as Pn, Cell as Fn, ComposedChart as In, Line as Ln, LineChart as Rn, Pie as zn, PieChart as Bn, ReferenceArea as Vn, ResponsiveContainer as Hn, Tooltip as Un, XAxis as Wn, YAxis as Gn } from "recharts";
  import { MapContainer as Kn, Marker as qn, Popup as Jn, TileLayer as Yn } from "react-leaflet";
  import Xn from "leaflet";
@@ -41,7 +41,37 @@ index bae3240..de710a9 100644
 +		globalThis.localStorage?.setItem(SHORT_URLS_MOBILE_LAYOUT_KEY, layout);
 +	} catch {}
 +	shortUrlsMobileLayoutListeners.forEach((listener) => listener());
-+}, subscribeToShortUrlsMobileLayout = (listener) => (shortUrlsMobileLayoutListeners.add(listener), () => shortUrlsMobileLayoutListeners.delete(listener)), useShortUrlsMobileLayout = () => useSyncExternalStoreR(subscribeToShortUrlsMobileLayout, getShortUrlsMobileLayout, () => "table"), ShortUrlsMobileLayoutToggle = ({ className: e }) => {
++}, subscribeToShortUrlsMobileLayout = (listener) => (shortUrlsMobileLayoutListeners.add(listener), () => shortUrlsMobileLayoutListeners.delete(listener)), useShortUrlsMobileLayout = () => useSyncExternalStoreR(subscribeToShortUrlsMobileLayout, getShortUrlsMobileLayout, () => "table"), SHORT_URLS_PER_PAGE_OPTIONS = [
++	10,
++	50,
++	100,
++	500,
++	1e3
++], SHORT_URLS_PER_PAGE_KEY = "shlink-dashboard.short-urls-per-page", DEFAULT_SHORT_URLS_PER_PAGE = 10, parseShortUrlsPerPage = (value) => {
++	let parsed = Number(value);
++	return SHORT_URLS_PER_PAGE_OPTIONS.includes(parsed) ? parsed : void 0;
++}, resolveShortUrlsPerPage = (fromQuery) => {
++	let fromQueryParsed = parseShortUrlsPerPage(fromQuery);
++	if (fromQueryParsed !== void 0) return fromQueryParsed;
++	try {
++		return parseShortUrlsPerPage(globalThis.localStorage?.getItem(SHORT_URLS_PER_PAGE_KEY)) ?? DEFAULT_SHORT_URLS_PER_PAGE;
++	} catch {
++		return DEFAULT_SHORT_URLS_PER_PAGE;
++	}
++}, rememberShortUrlsPerPage = (value) => {
++	try {
++		globalThis.localStorage?.setItem(SHORT_URLS_PER_PAGE_KEY, `${value}`);
++	} catch {}
++}, ShortUrlsPerPageDropdown = ({ value: e, onChange: t }) => /* @__PURE__ */ B(S, {
++	buttonContent: /* @__PURE__ */ B("span", { children: [/* @__PURE__ */ z("b", { children: j(e) }), " per page"] }),
++	buttonClassName: "w-full",
++	menuAlignment: "right",
++	children: [/* @__PURE__ */ z(S.Title, { children: "Short URLs per page" }), ...SHORT_URLS_PER_PAGE_OPTIONS.map((option) => /* @__PURE__ */ z(S.Item, {
++		selected: option === e,
++		onClick: () => t(option),
++		children: j(option)
++	}, option))]
++}), ShortUrlsMobileLayoutToggle = ({ className: e }) => {
 +	let t = useShortUrlsMobileLayout();
 +	return /* @__PURE__ */ B("div", {
 +		role: "group",
@@ -65,7 +95,7 @@ index bae3240..de710a9 100644
  //#region \0rolldown/runtime.js
  var Zn = Object.defineProperty, Qn = (e, t) => {
  	let n = {};
-@@ -2649,6 +2686,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2649,6 +2716,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  		onClick: () => t?.(e)
  	}, e))
  }), Wc = wi(({ shortUrl: e, onTagClick: t, ColorGenerator: n, useTimeoutToggle: r }) => {
@@ -73,7 +103,7 @@ index bae3240..de710a9 100644
  	let [i, a] = r({
  		initialValue: !1,
  		delay: 500
-@@ -2670,27 +2708,28 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2670,27 +2738,28 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  			/* @__PURE__ */ z(A.Cell, {
  				columnName: "Short URL:",
  				children: /* @__PURE__ */ B("span", {
@@ -106,7 +136,7 @@ index bae3240..de710a9 100644
  				columnName: "Tags:",
  				children: /* @__PURE__ */ z(Uc, {
  					tags: e.tags,
-@@ -2708,9 +2747,17 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2708,9 +2777,17 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  					asLink: !0
  				})
  			}),
@@ -125,7 +155,7 @@ index bae3240..de710a9 100644
  				children: /* @__PURE__ */ B("div", {
  					className: "inline-flex gap-2",
  					children: [/* @__PURE__ */ z(Rc, { shortUrl: e }), e.hasRedirectRules && /* @__PURE__ */ z(Ec, {
-@@ -2723,13 +2770,13 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2723,13 +2800,13 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  				})
  			}),
  			/* @__PURE__ */ z(A.Cell, {
@@ -141,7 +171,7 @@ index bae3240..de710a9 100644
  	className: H("text-center", { "text-danger font-bold": t }),
  	children: e
  }) }), Kc = ({ shortUrlsList: e, onTagClick: t }) => {
-@@ -2742,8 +2789,11 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2742,8 +2819,11 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  		onTagClick: t
  	}, e.shortUrl));
  }, qc = ({ orderByColumn: e, renderOrderIcon: t, shortUrlsList: n, onTagClick: r }) => {
@@ -155,7 +185,7 @@ index bae3240..de710a9 100644
  		className: "mb-[-1px] w-full",
  		header: /* @__PURE__ */ B(A.Row, { children: [
  			/* @__PURE__ */ B(A.Cell, {
-@@ -2785,6 +2835,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2785,6 +2865,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  					children: ["Visits ", t?.("visits")]
  				})
  			}),
@@ -170,7 +200,7 @@ index bae3240..de710a9 100644
  			/* @__PURE__ */ z(A.Cell, {
  				colSpan: 2,
  				"aria-hidden": !0
-@@ -2794,6 +2852,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2794,6 +2882,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  			shortUrlsList: n,
  			onTagClick: r
  		})
@@ -178,7 +208,7 @@ index bae3240..de710a9 100644
  	});
  }, Jc = ({ children: e, title: t, link: n, tooltip: r }) => {
  	let { anchor: i, tooltip: a } = Ae({ placement: "bottom" });
-@@ -2916,10 +2975,10 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2916,10 +3005,10 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  				title: "Recently created URLs",
  				titleLinkText: "See all",
  				titleLink: `${u}/list-short-urls/1`,
@@ -191,18 +221,29 @@ index bae3240..de710a9 100644
  			})
  		]
  	});
-@@ -5143,6 +5202,10 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5143,7 +5232,11 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  		]
  	});
  }, pd = ({ className: e, shortUrlsAmount: t, order: n, handleOrderBy: r }) => {
+-	let { domainsList: i } = da(), { tagsList: a } = To(), [{ search: s, tags: c, tagsMode: l = "any", excludeTags: u, excludeTagsMode: d = "any", startDate: f, endDate: p, excludeBots: m, excludeMaxVisitsReached: h, excludePastValidUntil: g, domain: _ }, v] = Cc(), y = o("visits"), b = Ji("filterShortUrlsByDomain"), x = Ji("filterShortUrlsByExcludedTags"), [S, ee] = I(), C = N(({ startDate: e, endDate: t }, n) => {
 +	let extraColumns = mt(ShortUrlsTableExtraColumnsContext), orderItems = F(() => ({
 +		...cd,
 +		...Object.fromEntries(extraColumns.filter((column) => column.orderField).map((column) => [column.orderField, column.name]))
 +	}), [extraColumns]);
- 	let { domainsList: i } = da(), { tagsList: a } = To(), [{ search: s, tags: c, tagsMode: l = "any", excludeTags: u, excludeTagsMode: d = "any", startDate: f, endDate: p, excludeBots: m, excludeMaxVisitsReached: h, excludePastValidUntil: g, domain: _ }, v] = Cc(), y = o("visits"), b = Ji("filterShortUrlsByDomain"), x = Ji("filterShortUrlsByExcludedTags"), [S, ee] = I(), C = N(({ startDate: e, endDate: t }, n) => {
++	let { domainsList: i } = da(), { tagsList: a } = To(), [{ itemsPerPage: perPageParam, search: s, tags: c, tagsMode: l = "any", excludeTags: u, excludeTagsMode: d = "any", startDate: f, endDate: p, excludeBots: m, excludeMaxVisitsReached: h, excludePastValidUntil: g, domain: _ }, v] = Cc(), y = o("visits"), b = Ji("filterShortUrlsByDomain"), x = Ji("filterShortUrlsByExcludedTags"), [S, ee] = I(), C = N(({ startDate: e, endDate: t }, n) => {
  		v({
  			startDate: Cr(e) ?? void 0,
-@@ -5215,7 +5278,7 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 			endDate: Cr(t) ?? void 0
+@@ -5208,29 +5301,35 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 					})]
+ 				})]
+ 			}), /* @__PURE__ */ B("div", {
+-				className: "flex gap-2",
++				className: "grid grid-cols-2 xl:flex gap-2",
+ 				children: [/* @__PURE__ */ z("div", {
+-					className: "max-xl:w-1/2 xl:hidden",
++					className: "xl:hidden",
+ 					children: /* @__PURE__ */ z(oe, {
  						containerClassName: "[&]:block",
  						buttonClassName: "w-full",
  						prefixed: !1,
@@ -211,8 +252,16 @@ index bae3240..de710a9 100644
  						order: n,
  						onChange: ({ field: e, dir: t }) => r(e, t)
  					})
-@@ -5223,7 +5286,7 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
- 					className: "max-xl:w-1/2",
+-				}), /* @__PURE__ */ z("div", {
+-					className: "max-xl:w-1/2",
++				}), /* @__PURE__ */ z("div", { children: /* @__PURE__ */ z(ShortUrlsPerPageDropdown, {
++					value: resolveShortUrlsPerPage(perPageParam),
++					onChange: (perPage) => {
++						rememberShortUrlsPerPage(perPage);
++						v({ itemsPerPage: `${perPage}` });
++					}
++				}) }), /* @__PURE__ */ z("div", {
++					className: "max-xl:col-span-2",
  					children: /* @__PURE__ */ z(dd, { amount: t })
  				})]
 -			})]
@@ -220,7 +269,15 @@ index bae3240..de710a9 100644
  		})]
  	});
  }, md = {
-@@ -5248,6 +5311,9 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 	field: "dateCreated",
+ 	dir: "DESC"
+ }, hd = sc(() => {
+-	let { listShortUrls: t, shortUrlsList: n } = no(), { page: r } = At(), i = Ot(), [{ tags: a, tagsMode: o, excludeTags: s, excludeTagsMode: c, search: l, startDate: u, endDate: d, orderBy: f, excludeBots: p, excludePastValidUntil: m, excludeMaxVisitsReached: h, domain: g }, _] = Cc(), v = e(), [y, b] = I(f ?? v.shortUrlsList?.defaultOrdering ?? md), x = n.status === "loaded", { pagination: S } = x ? n.shortUrls : {}, ee = F(() => p ?? v.visits?.excludeBots, [p, v.visits?.excludeBots]), C = N((e, t) => {
++	let { listShortUrls: t, shortUrlsList: n } = no(), { page: r } = At(), i = Ot(), [{ itemsPerPage: perPageParam, tags: a, tagsMode: o, excludeTags: s, excludeTagsMode: c, search: l, startDate: u, endDate: d, orderBy: f, excludeBots: p, excludePastValidUntil: m, excludeMaxVisitsReached: h, domain: g }, _] = Cc(), perPage = resolveShortUrlsPerPage(perPageParam), v = e(), [y, b] = I(f ?? v.shortUrlsList?.defaultOrdering ?? md), x = n.status === "loaded", { pagination: S } = x ? n.shortUrls : {}, ee = F(() => p ?? v.visits?.excludeBots, [p, v.visits?.excludeBots]), C = N((e, t) => {
+ 		_({ orderBy: {
+ 			field: e,
+ 			dir: t
+@@ -5248,6 +5347,9 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  	}), T = N((e) => _({ tags: [.../* @__PURE__ */ new Set([...a, e])] }), [a, _]), ne = N(({ field: e, dir: t }) => ee && e === "visits" ? {
  		field: "nonBotVisits",
  		dir: t
@@ -230,7 +287,22 @@ index bae3240..de710a9 100644
  	} : {
  		field: e,
  		dir: t
-@@ -7341,4 +7407,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
+@@ -5265,11 +5367,13 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 			orderBy: ne(y),
+ 			excludePastValidUntil: m,
+ 			excludeMaxVisitsReached: h,
+-			domain: g
++			domain: g,
++			itemsPerPage: perPage
+ 		});
+ 	}, [
+ 		t,
+ 		ne,
++		perPage,
+ 		r,
+ 		l,
+ 		a,
+@@ -7341,4 +7445,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
  });
  var Qf = Zf(yi);
  //#endregion
