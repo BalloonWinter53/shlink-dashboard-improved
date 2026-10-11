@@ -9,27 +9,104 @@ index efdc34c..7ee1bd9 100644
 +export { ShortUrlsTableExtraColumnsContext } from './short-urls/ShortUrlsTableExtraColumns';
 +export type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } from './short-urls/ShortUrlsTableExtraColumns';
 diff --git a/node_modules/@shlinkio/shlink-web-component/dist/index.js b/node_modules/@shlinkio/shlink-web-component/dist/index.js
-index bae3240..6c63c7b 100644
+index bae3240..fe1082a 100644
 --- a/node_modules/@shlinkio/shlink-web-component/dist/index.js
 +++ b/node_modules/@shlinkio/shlink-web-component/dist/index.js
-@@ -22,6 +22,8 @@ import { useSwipeable as Mn } from "react-swipeable";
+@@ -6,7 +6,7 @@ import { Parser as Me } from "@json2csv/plainjs";
+ import { countBy as Ne, groupBy as Pe, mergeDeepRight as Fe, range as Ie, sortBy as Le, splitEvery as Re, zipObj as ze } from "@shlinkio/data-manipulation";
+ import { add as Be, addDays as Ve, differenceInCalendarDays as He, differenceInCalendarMonths as Ue, differenceInCalendarWeeks as We, differenceInDays as Ge, differenceInHours as Ke, endOfDay as qe, endOfISOWeek as Je, format as Ye, formatDistance as Xe, formatISO as Ze, getUnixTime as Qe, isAfter as $e, isBefore as et, isEqual as tt, isWithinInterval as nt, max as rt, min as it, parseISO as at, startOfDay as ot, startOfISOWeek as st, subDays as ct, toDate as lt } from "date-fns";
+ import ut from "bowser";
+-import { Fragment as dt, createContext as ft, forwardRef as pt, useCallback as N, useContext as mt, useEffect as P, useId as ht, useImperativeHandle as gt, useLayoutEffect as _t, useMemo as F, useRef as vt, useState as I } from "react";
++import { Fragment as dt, createContext as ft, forwardRef as pt, useCallback as N, useContext as mt, useEffect as P, useId as ht, useImperativeHandle as gt, useLayoutEffect as _t, useMemo as F, useRef as vt, useState as I, useSyncExternalStore as useSyncExternalStoreR } from "react";
+ import { Provider as yt, useDispatch as bt, useSelector as xt } from "react-redux";
+ import { BrowserRouter as St, Link as Ct, NavLink as wt, Navigate as Tt, Route as L, Routes as Et, useInRouterContext as Dt, useLocation as Ot, useNavigate as kt, useParams as At } from "react-router";
+ import { Fragment as R, jsx as z, jsxs as B } from "react/jsx-runtime";
+@@ -22,6 +22,43 @@ import { useSwipeable as Mn } from "react-swipeable";
  import { Bar as Nn, CartesianGrid as Pn, Cell as Fn, ComposedChart as In, Line as Ln, LineChart as Rn, Pie as zn, PieChart as Bn, ReferenceArea as Vn, ResponsiveContainer as Hn, Tooltip as Un, XAxis as Wn, YAxis as Gn } from "recharts";
  import { MapContainer as Kn, Marker as qn, Popup as Jn, TileLayer as Yn } from "react-leaflet";
  import Xn from "leaflet";
 +/** Lets consumers append extra columns to the short URLs table (shlink-dashboard patch) */
 +var ShortUrlsTableExtraColumnsContext = ft([]);
++/** How the short URLs table is displayed on small screens: as cards, or as a horizontally scrollable table (shlink-dashboard patch) */
++var SHORT_URLS_MOBILE_LAYOUT_KEY = "shlink-dashboard.short-urls-mobile-layout", shortUrlsMobileLayoutState = { value: void 0 }, shortUrlsMobileLayoutListeners = /* @__PURE__ */ new Set(), getShortUrlsMobileLayout = () => {
++	if (shortUrlsMobileLayoutState.value === void 0) try {
++		shortUrlsMobileLayoutState.value = globalThis.localStorage?.getItem(SHORT_URLS_MOBILE_LAYOUT_KEY) === "table" ? "table" : "cards";
++	} catch {
++		shortUrlsMobileLayoutState.value = "cards";
++	}
++	return shortUrlsMobileLayoutState.value;
++}, setShortUrlsMobileLayout = (layout) => {
++	shortUrlsMobileLayoutState.value = layout;
++	try {
++		globalThis.localStorage?.setItem(SHORT_URLS_MOBILE_LAYOUT_KEY, layout);
++	} catch {}
++	shortUrlsMobileLayoutListeners.forEach((listener) => listener());
++}, subscribeToShortUrlsMobileLayout = (listener) => (shortUrlsMobileLayoutListeners.add(listener), () => shortUrlsMobileLayoutListeners.delete(listener)), useShortUrlsMobileLayout = () => useSyncExternalStoreR(subscribeToShortUrlsMobileLayout, getShortUrlsMobileLayout, () => "cards"), ShortUrlsMobileLayoutToggle = ({ className: e }) => {
++	let t = useShortUrlsMobileLayout();
++	return /* @__PURE__ */ B("div", {
++		role: "group",
++		"aria-label": "Short URLs layout",
++		className: H("flex", e),
++		children: [/* @__PURE__ */ z(g, {
++			className: "grow [&]:rounded-r-none",
++			solid: t === "cards",
++			"aria-pressed": t === "cards",
++			onClick: () => setShortUrlsMobileLayout("cards"),
++			children: "Cards"
++		}), /* @__PURE__ */ z(g, {
++			className: "grow [&]:rounded-l-none [&]:border-l-0",
++			solid: t === "table",
++			"aria-pressed": t === "table",
++			onClick: () => setShortUrlsMobileLayout("table"),
++			children: "Table"
++		})]
++	});
++};
  //#region \0rolldown/runtime.js
  var Zn = Object.defineProperty, Qn = (e, t) => {
  	let n = {};
-@@ -2649,6 +2651,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2649,6 +2686,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  		onClick: () => t?.(e)
  	}, e))
  }), Wc = wi(({ shortUrl: e, onTagClick: t, ColorGenerator: n, useTimeoutToggle: r }) => {
-+	let extraColumns = mt(ShortUrlsTableExtraColumnsContext);
++	let extraColumns = mt(ShortUrlsTableExtraColumnsContext), asTable = useShortUrlsMobileLayout() === "table";
  	let [i, a] = r({
  		initialValue: !1,
  		delay: 500
-@@ -2708,6 +2711,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2670,27 +2708,28 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 			/* @__PURE__ */ z(A.Cell, {
+ 				columnName: "Short URL:",
+ 				children: /* @__PURE__ */ B("span", {
+-					className: "lg:whitespace-nowrap inline-flex items-center gap-x-2",
++					className: H("lg:whitespace-nowrap inline-flex items-center gap-x-2", { "whitespace-nowrap": asTable }),
+ 					children: [/* @__PURE__ */ z(Dn, {
+ 						href: e.shortUrl,
+-						className: "max-md:break-all lg:truncate max-w-72"
++						className: asTable ? "truncate max-w-72" : "max-md:break-all lg:truncate max-w-72"
+ 					}), /* @__PURE__ */ z(x, { text: e.shortUrl })]
+ 				})
+ 			}),
+ 			/* @__PURE__ */ z(A.Cell, {
+-				className: "break-all",
++				className: H("break-all", { "max-lg:min-w-64": asTable }),
+ 				columnName: `${e.title ? "Title" : "Long URL"}:`,
+ 				children: /* @__PURE__ */ z(Dn, {
+ 					href: e.longUrl,
+ 					children: e.title ?? e.longUrl
+ 				})
+ 			}),
+-			e.title && /* @__PURE__ */ z(A.Cell, {
++			e.title && !asTable && /* @__PURE__ */ z(A.Cell, {
+ 				className: "break-all [&]:lg:hidden",
+ 				columnName: "Long URL:",
+ 				children: /* @__PURE__ */ z(Dn, { href: e.longUrl })
+ 			}),
+ 			/* @__PURE__ */ z(A.Cell, {
++				className: H({ "max-lg:min-w-40": asTable }),
+ 				columnName: "Tags:",
+ 				children: /* @__PURE__ */ z(Uc, {
+ 					tags: e.tags,
+@@ -2708,9 +2747,17 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  					asLink: !0
  				})
  			}),
@@ -43,8 +120,19 @@ index bae3240..6c63c7b 100644
 +			}, column.key)),
  			/* @__PURE__ */ z(A.Cell, {
  				columnName: "Status:",
- 				className: "max-lg:border-none",
-@@ -2729,7 +2740,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+-				className: "max-lg:border-none",
++				className: asTable ? void 0 : "max-lg:border-none",
+ 				children: /* @__PURE__ */ B("div", {
+ 					className: "inline-flex gap-2",
+ 					children: [/* @__PURE__ */ z(Rc, { shortUrl: e }), e.hasRedirectRules && /* @__PURE__ */ z(Ec, {
+@@ -2723,13 +2770,13 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 				})
+ 			}),
+ 			/* @__PURE__ */ z(A.Cell, {
+-				className: "text-right max-lg:absolute max-lg:top-1 max-lg:right-1 max-lg:p-0",
++				className: asTable ? "text-right" : "text-right max-lg:absolute max-lg:top-1 max-lg:right-1 max-lg:p-0",
+ 				children: /* @__PURE__ */ z(Ic, { shortUrl: e })
+ 			})
  		]
  	});
  }, ["ColorGenerator", "useTimeoutToggle"]), Gc = ({ children: e, danger: t }) => /* @__PURE__ */ z(A.Row, { children: /* @__PURE__ */ z(A.Cell, {
@@ -53,16 +141,21 @@ index bae3240..6c63c7b 100644
  	className: H("text-center", { "text-danger font-bold": t }),
  	children: e
  }) }), Kc = ({ shortUrlsList: e, onTagClick: t }) => {
-@@ -2742,7 +2753,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+@@ -2742,8 +2789,11 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  		onTagClick: t
  	}, e.shortUrl));
  }, qc = ({ orderByColumn: e, renderOrderIcon: t, shortUrlsList: n, onTagClick: r }) => {
 -	let i = H({ "cursor-pointer": !!e });
-+	let i = H({ "cursor-pointer": !!e }), extraColumns = mt(ShortUrlsTableExtraColumnsContext);
- 	return /* @__PURE__ */ z(A, {
+-	return /* @__PURE__ */ z(A, {
++	let i = H({ "cursor-pointer": !!e }), extraColumns = mt(ShortUrlsTableExtraColumnsContext), asTable = useShortUrlsMobileLayout() === "table";
++	return /* @__PURE__ */ z("div", {
++		className: H({ "max-lg:overflow-x-auto": asTable }),
++		children: /* @__PURE__ */ z(A, {
++		responsive: !asTable,
  		className: "mb-[-1px] w-full",
  		header: /* @__PURE__ */ B(A.Row, { children: [
-@@ -2785,6 +2796,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 			/* @__PURE__ */ B(A.Cell, {
+@@ -2785,6 +2835,14 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
  					children: ["Visits ", t?.("visits")]
  				})
  			}),
@@ -77,7 +170,15 @@ index bae3240..6c63c7b 100644
  			/* @__PURE__ */ z(A.Cell, {
  				colSpan: 2,
  				"aria-hidden": !0
-@@ -5143,6 +5162,10 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -2794,6 +2852,7 @@ var Mc = pt(({ data: e, color: t, bgColor: n, margin: r, errorCorrection: i, siz
+ 			shortUrlsList: n,
+ 			onTagClick: r
+ 		})
++	})
+ 	});
+ }, Jc = ({ children: e, title: t, link: n, tooltip: r }) => {
+ 	let { anchor: i, tooltip: a } = Ae({ placement: "bottom" });
+@@ -5143,6 +5202,10 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  		]
  	});
  }, pd = ({ className: e, shortUrlsAmount: t, order: n, handleOrderBy: r }) => {
@@ -88,7 +189,7 @@ index bae3240..6c63c7b 100644
  	let { domainsList: i } = da(), { tagsList: a } = To(), [{ search: s, tags: c, tagsMode: l = "any", excludeTags: u, excludeTagsMode: d = "any", startDate: f, endDate: p, excludeBots: m, excludeMaxVisitsReached: h, excludePastValidUntil: g, domain: _ }, v] = Cc(), y = o("visits"), b = Ji("filterShortUrlsByDomain"), x = Ji("filterShortUrlsByExcludedTags"), [S, ee] = I(), C = N(({ startDate: e, endDate: t }, n) => {
  		v({
  			startDate: Cr(e) ?? void 0,
-@@ -5215,7 +5238,7 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5215,7 +5278,7 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  						containerClassName: "[&]:block",
  						buttonClassName: "w-full",
  						prefixed: !1,
@@ -97,7 +198,16 @@ index bae3240..6c63c7b 100644
  						order: n,
  						onChange: ({ field: e, dir: t }) => r(e, t)
  					})
-@@ -5248,6 +5271,9 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+@@ -5223,7 +5286,7 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
+ 					className: "max-xl:w-1/2",
+ 					children: /* @__PURE__ */ z(dd, { amount: t })
+ 				})]
+-			})]
++			}), /* @__PURE__ */ z(ShortUrlsMobileLayoutToggle, { className: "lg:hidden" })]
+ 		})]
+ 	});
+ }, md = {
+@@ -5248,6 +5311,9 @@ var nd = ({ paginator: e, currentQueryString: t = "" }) => {
  	}), T = N((e) => _({ tags: [.../* @__PURE__ */ new Set([...a, e])] }), [a, _]), ne = N(({ field: e, dir: t }) => ee && e === "visits" ? {
  		field: "nonBotVisits",
  		dir: t
@@ -107,7 +217,7 @@ index bae3240..6c63c7b 100644
  	} : {
  		field: e,
  		dir: t
-@@ -7341,4 +7367,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
+@@ -7341,4 +7407,4 @@ delete Xn.Icon.Default.prototype._getIconUrl, Xn.Icon.Default.mergeOptions({
  });
  var Qf = Zf(yi);
  //#endregion
