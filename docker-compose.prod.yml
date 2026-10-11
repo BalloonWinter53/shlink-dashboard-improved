@@ -1,0 +1,20 @@
+# Production-style setup: builds this repo's Dockerfile and reads config from .env.
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  shlink_dashboard:
+    container_name: shlink_dashboard
+    image: shlink-dashboard-improved:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${VERSION:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    ports:
+      - "${SHLINK_DASHBOARD_PORT:-3005}:${SHLINK_DASHBOARD_PORT:-3005}"
+    extra_hosts:
+      # Lets the container reach a DB/tunnel on the host via host.docker.internal
+      - "host.docker.internal:host-gateway"

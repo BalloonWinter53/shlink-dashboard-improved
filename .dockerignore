@@ -9,3 +9,6 @@ test
 docker-compose*
 indocker
 vitest.config.ts
+.env
+.env.*
+!.env.example
