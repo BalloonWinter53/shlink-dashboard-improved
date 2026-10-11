@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the current checkout into releases/<commit>, runs migrations, and switches the pm2 app to it.
+# Builds the current checkout into releases/<commit>-<timestamp>, runs migrations, and switches the pm2 app to it.
 # The previous release keeps running until the new one is fully built, so a failed build causes no downtime.
 #
 # Run it from a clone of this repo on the server, with a .env file in the repo root (see .env.example).
@@ -18,10 +18,11 @@ main() {
     exit 1
   fi
 
-  local commit version release
+  local commit version release_name release
   commit="$(git rev-parse --short HEAD)"
   version="${VERSION:-$(git describe --tags --always)}"
-  release="${root}/releases/${commit}"
+  release_name="${commit}-$(date +%Y%m%d%H%M%S)"
+  release="${root}/releases/${release_name}"
   echo "Building version ${version} into ${release}"
 
   npm ci
@@ -29,7 +30,6 @@ main() {
   VERSION="${version}" node --run build:dist
   cp tsconfig.json build/
   mkdir -p releases
-  rm -rf "${release}"
   cp -a build "${release}"
 
   # `node --run` does not pass --env-file vars to scripts, so the migrations CLI is invoked directly
@@ -37,7 +37,7 @@ main() {
     ./node_modules/@mikro-orm/cli/cli.js migration:up --config ./migrations.config.ts)
 
   # Atomically point current/ to the new release
-  ln -sfn "releases/${commit}" current.tmp
+  ln -sfn "releases/${release_name}" current.tmp
   mv -Tf current.tmp current
 
   pm2 startOrReload deploy/ecosystem.config.cjs --update-env

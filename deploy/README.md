@@ -16,7 +16,7 @@ shlink-dashboard-deploy
 ## Layout
 
 - `.env`: configuration (see `.env.example`).
-- `releases/<commit>`: the 3 most recent builds.
+- `releases/<commit>-<timestamp>`: the 3 most recent builds.
 - `current`: symlink to the release pm2 runs. A new release only replaces it once it built successfully.
 
 ## Useful commands
@@ -31,6 +31,6 @@ Roll back to a previous release:
 
 ```bash
 cd /srv/shlink-dashboard
-sudo -u shlink-dashboard ln -sfn releases/<commit> current
+sudo -u shlink-dashboard ln -sfn releases/<release> current
 sudo -u shlink-dashboard -H pm2 reload shlink-dashboard
 ```
