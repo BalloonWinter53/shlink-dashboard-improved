@@ -2,7 +2,7 @@ import type { ShortUrlsTableExtraColumn, ShortUrlsTableExtraColumnCellProps } fr
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import type { ShortUrlVisitsWindowsLoader, VisitsWindow, VisitsWindows } from './ShortUrlVisitsWindowsLoader.client';
-import { VISITS_WINDOWS_DEFAULT_ORDER_DIR, visitsWindowOrderField } from './visits-windows';
+import { visitsWindowOrderField } from './visits-windows';
 
 const numberFormatter = new Intl.NumberFormat();
 
@@ -64,6 +64,5 @@ export const createVisitsWindowsColumns = (loader: ShortUrlVisitsWindowsLoader):
     ),
     className: 'lg:text-right',
     orderField: visitsWindowOrderField(window),
-    defaultOrderDir: VISITS_WINDOWS_DEFAULT_ORDER_DIR,
     Cell: createVisitsWindowCell(loader, window),
   }));
