@@ -7,7 +7,7 @@ export const createSessionStorage = () =>
     cookie: {
       name: 'shlink_dashboard_session',
       httpOnly: true,
-      maxAge: 30 * 60, // 30 minutes
+      maxAge: env.SHLINK_DASHBOARD_SESSION_TIMEOUT_MINUTES * 60,
       path: '/',
       sameSite: 'lax',
       secrets: env.SHLINK_DASHBOARD_SESSION_SECRETS ?? ['s3cr3t1'],

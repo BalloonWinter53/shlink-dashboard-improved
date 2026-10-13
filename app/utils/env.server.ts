@@ -24,6 +24,8 @@ const envVariables = z.object({
       (secrets) => secrets.split(',').map((v) => v.trim()),
     )
     .optional(),
+  // Minutes of inactivity after which users are logged out
+  SHLINK_DASHBOARD_SESSION_TIMEOUT_MINUTES: z.coerce.number().int().positive().default(30),
 });
 
 export const env = envVariables.parse(process.env);

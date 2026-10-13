@@ -72,5 +72,6 @@ Configuration is provided via env vars. These are the ones currently supported:
     - `SHLINK_DASHBOARD_DB_USE_ENCRYPTION`: Enable or disable encrypted database connections. Defaults to `false`.
 2. Other
     - `SHLINK_DASHBOARD_SESSION_SECRETS`: A comma separated list of secrets used to sign session tokens. Make sure to provide something as complex and hard to guess as possible. Ideally long auto-generated random strings.
+    - `SHLINK_DASHBOARD_SESSION_TIMEOUT_MINUTES`: Minutes of inactivity after which users are logged out. The session is renewed on every page load. Defaults to `30`.
     - `SHLINK_DASHBOARD_TRUSTED_PROXIES`: Reverse proxies trusted to set `X-Forwarded-*` headers, as a comma-separated list of IPs, subnets, or keywords like `loopback` or `uniquelocal`. Needed when serving the dashboard over HTTPS behind a reverse proxy. Defaults to `loopback`.
 
